@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Visual Debugging</title>
+    <style>
+        html {
+            overflow-y: scroll;
+        }
+
+        body {
+            margin: 0px;
+            padding: 0px;
+            font-size: 7pt;
+            font-family: 'Operator Mono', Menlo, Consolas, monospace;
+            text-align: center;
+            background-color: #fafafa;
+        }
+
+        .images-list {
+            background: white;
+            display: inline-block;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+        }
+
+        img {
+            max-width: 100%;
+        }
+
+        .images-list span {
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            font-size: 35px;
+            color: silver;
+            text-shadow: -1px -1px 0px white;
+            transform: translateX(-50%) translateY(-50%);
+            display: none;
+        }
+
+        .images-list span:last-child {
+            display: block;
+        }
+
+        .input {
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.2s;
+            padding: 30px;
+        }
+        .input:hover {
+            opacity: 1;
+        }
+        input {
+            max-width: 600px;
+            width: 100%;
+        }
+    </style>
+
+</head>
+
+<body>
+    <div class="images-list">
+        <span>wait for it</span>
+    </div>
+    <div class="input">
+        <input type="range" max="0" value="0">
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+
+    <script>
+        var socket = io(window.location.href);
+        var imagesContainer = document.querySelector('.images-list');
+        var input = document.querySelector('input');
+        var i = 0;
+
+        socket.on('img', addImage);
+
+        function buildImageEntry (data, i) {
+            var img = document.createElement('img');
+
+            img.id = 'img' + i;
+            img.src = 'data:image/jpeg;base64, ' + data;
+
+            return img;
+        }
+
+        function hideImages () {
+            Array.from(imagesContainer.querySelectorAll('img')).forEach(function (img) {
+                img.style.display = 'none';
+            });
+        }
+
+        function addImage (data) {
+            if (!imagesContainer || !data) {
+                return;
+            }
+
+            hideImages();
+
+            imagesContainer.appendChild(buildImageEntry(data, i));
+            input.setAttribute('max', i);
+            input.value = i;
+
+            i++;
+        }
+
+        function onChange () {
+            hideImages();
+            imagesContainer.querySelector('#img' + this.value).style.display = 'block';
+        }
+
+
+        input.addEventListener('input', onChange);
+        input.addEventListener('change', onChange);
+    </script>
+</body>
+</html>
